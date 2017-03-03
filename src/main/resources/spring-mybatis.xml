@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx" xmlns:cache="http://www.springframework.org/schema/cache"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+    <aop:aspectj-autoproxy/>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc-url}"/>
+        <property name="username" value="${jdbc-user}"/>
+        <property name="password" value="${jdbc-password}"/>
+
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+        <property name="maxIdle" value="${jdbc.maxIdle}"/>
+        <property name="maxWait" value="1000"/>
+        <property name="defaultAutoCommit" value="true"/>
+        <property name="removeAbandoned" value="true"/>
+        <property name="removeAbandonedTimeout" value="60"/>
+        <!--超时后自动重连-->
+        <property name="validationQuery" value="SELECT 1"/>
+        <property name="testOnBorrow" value="true"/>
+    </bean>
+
+    <!--mybatis文件配置，扫描所有mapper文件-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean"
+          p:dataSource-ref="dataSource" p:configLocation="classpath:mybatis-config.xml">
+        <property name="mapperLocations" value="classpath:cn/yong/solrtest/mapper/*.xml"/>
+    </bean>
+
+    <!--spring与mybatis整合配置，扫描所有dao-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" p:basePackage="cn.yong.solrtest.dao"
+          p:sqlSessionFactoryBeanName="sqlSessionFactory"/>
+
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!--使用annotation定义事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+
+</beans>
